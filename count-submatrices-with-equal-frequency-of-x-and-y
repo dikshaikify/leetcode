@@ -1,0 +1,33 @@
+from typing import List
+
+class Solution:
+    def numberOfSubmatrices(self, grid: List[List[str]]) -> int:
+        n = len(grid)
+        m = len(grid[0])
+        
+        # 2D Prefix sums for X and Y
+        # We use (n+1) x (m+1) to handle boundary conditions easily
+        prefX = [[0] * (m + 1) for _ in range(n + 1)]
+        prefY = [[0] * (m + 1) for _ in range(n + 1)]
+        
+        ans = 0
+        
+        for r in range(n):
+            for c in range(m):
+                # Standard 2D prefix sum formula: 
+                # Current = Top + Left - TopLeft + CurrentValue
+                
+                isX = 1 if grid[r][c] == 'X' else 0
+                isY = 1 if grid[r][c] == 'Y' else 0
+                
+                prefX[r+1][c+1] = prefX[r][c+1] + prefX[r+1][c] - prefX[r][c] + isX
+                prefY[r+1][c+1] = prefY[r][c+1] + prefY[r+1][c] - prefY[r][c] + isY
+                
+                # Check the problem conditions for the submatrix (0,0) to (r,c)
+                currentX = prefX[r+1][c+1]
+                currentY = prefY[r+1][c+1]
+                
+                if currentX > 0 and currentX == currentY:
+                    ans += 1
+                    
+        return ans
