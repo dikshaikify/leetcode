@@ -1,0 +1,21 @@
+class Solution:
+    def constructProductMatrix(self, grid: List[List[int]]) -> List[List[int]]:
+        n, m = len(grid), len(grid[0])
+        MOD = 12345
+        res = [[0] * m for _ in range(n)]
+        
+        # Step 1: Forward pass (Prefix Products)
+        current_product = 1
+        for r in range(n):
+            for c in range(m):
+                res[r][c] = current_product
+                current_product = (current_product * grid[r][c]) % MOD
+        
+        # Step 2: Backward pass (Suffix Products)
+        current_product = 1
+        for r in range(n - 1, -1, -1):
+            for c in range(m - 1, -1, -1):
+                res[r][c] = (res[r][c] * current_product) % MOD
+                current_product = (current_product * grid[r][c]) % MOD
+                
+        return res
