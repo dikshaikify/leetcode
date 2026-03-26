@@ -1,0 +1,70 @@
+from typing import List
+
+class Solution:
+    def canPartitionGrid(self, grid: List[List[int]]) -> bool:
+        total_sum = sum(map(sum, grid))
+        
+        def check(mat: List[List[int]]) -> bool:
+            """
+            Checks for valid horizontal cuts that partition the grid into 
+            a 'top' section and a 'bottom' section.
+            """
+            top_sum = 0
+            seen = set()
+            m = len(mat)
+            n = len(mat[0])
+            
+            for i in range(m - 1): # m - 1 to ensure bottom is non-empty
+                row = mat[i]
+                top_sum += sum(row)
+                bot_sum = total_sum - top_sum
+                
+                # Update our seen numbers pool
+                seen |= set(row)
+                
+                diff = top_sum - bot_sum
+                
+                # Case 1: Perfect split without discounting any cell
+                if diff == 0:
+                    return True
+                
+                # Case 2: Discount a cell from the TOP section (diff > 0)
+                # To keep the top section connected, we can remove:
+                # - Any cell if it's the 1st row (i == 0) and width > 1: corners are always fine.
+                # - If row count >= 2, we can't remove interior elements because it could split the top.
+                if diff > 0:
+                    # Valid if we can drop corner elements of row 0
+                    if i == 0 and (mat[0][0] == diff or mat[0][-1] == diff):
+                        return True
+                    # If we are deeper than row 0 and have a width > 1, we can remove
+                    # border elements of previous rows without breaking connectivity
+                    if n > 1 and i > 0 and diff in seen:
+                        return True
+                    # Special 1D column (n == 1). We can remove endpoints.
+                    if n == 1 and (mat[0][0] == diff or mat[i][0] == diff):
+                        return True
+                
+            return False
+
+        # We need to run the check logic in all 4 orientations:
+        # 1. Normal horizontal cuts (Top vs Bottom)
+        # 2. Inverted horizontal cuts (Bottom vs Top, using reversed rows)
+        # 3. Normal vertical cuts (Left vs Right, using transposed grid)
+        # 4. Inverted vertical cuts (Right vs Left, using transposed + reversed grid)
+        
+        # Helper to transpose matrix
+        def transpose(mat):
+            return list(map(list, zip(*mat)))
+        
+        # Helper to reverse row order
+        def reverse_rows(mat):
+            return mat[::-1]
+
+        t_grid = transpose(grid)
+
+        return (
+            check(grid) or                        # Horizontal: Top vs Bottom
+            check(reverse_rows(grid)) or          # Horizontal: Bottom vs Top
+            check(t_grid) or                      # Vertical: Left vs Right
+            check(reverse_rows(t_grid))           # Vertical: Right vs Left
+        )
