@@ -1,0 +1,12 @@
+class Solution:
+    def areSimilar(self, mat: List[List[int]], k: int) -> bool:
+        n = len(mat[0])
+        # We only need to check if each element matches the element 
+        # that would land in its spot after k shifts.
+        # This is equivalent to checking if mat[i][j] == mat[i][(j + k) % n]
+        
+        for row in mat:
+            for j in range(n):
+                if row[j] != row[(j + k) % n]:
+                    return False
+        return True
