@@ -1,0 +1,54 @@
+class Solution:
+    def generateString(self, str1: str, str2: str) -> str:
+        n, m = len(str1), len(str2)
+        total_len = n + m - 1
+        res = [None] * total_len
+        
+        # 1. Fill mandatory characters from 'T'
+        for i, char in enumerate(str1):
+            if char == 'T':
+                for j in range(m):
+                    if res[i + j] is not None and res[i + j] != str2[j]:
+                        return "" # Impossible constraint overlap
+                    res[i + j] = str2[j]
+        
+        # 2. Greedy placement for 'None' slots
+        for i in range(total_len):
+            if res[i] is None:
+                # Try 'a' first
+                res[i] = 'a'
+                # If placing 'a' completes a forbidden 'str2' at any index, use 'b'
+                if not self.check_valid(res, str1, str2, i):
+                    res[i] = 'b'
+        
+        # 3. Final global validation
+        final_str = "".join(res)
+        for i in range(n):
+            current_sub = final_str[i : i + m]
+            if str1[i] == 'T' and current_sub != str2:
+                return ""
+            if str1[i] == 'F' and current_sub == str2:
+                return ""
+                
+        return final_str
+
+    def check_valid(self, res, str1, str2, curr_idx) -> bool:
+        """
+        Check if the current character placement completes an illegal 'str2'
+        at any starting position 'j' that overlaps with 'curr_idx'.
+        """
+        n, m = len(str1), len(str2)
+        # We only need to check windows that cover the current index
+        start = max(0, curr_idx - m + 1)
+        for j in range(start, min(n, curr_idx + 1)):
+            if str1[j] == 'F':
+                # Check if this window [j : j+m] is now fully filled and matches str2
+                match = True
+                for k in range(m):
+                    char_in_res = res[j + k]
+                    if char_in_res is None or char_in_res != str2[k]:
+                        match = False
+                        break
+                if match:
+                    return False # Illegal match found
+        return True
