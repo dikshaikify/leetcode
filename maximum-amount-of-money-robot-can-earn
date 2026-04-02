@@ -1,0 +1,36 @@
+from typing import List
+
+class Solution:
+    def maximumAmount(self, coins: List[List[int]]) -> int:
+        m, n = len(coins), len(coins[0])
+        # dp[i][j][k] -> max money at (i, j) with k neutralizations left
+        # Initialize with negative infinity as we want to maximize
+        dp = [[[float('-inf')] * 3 for _ in range(n)] for _ in range(m)]
+        
+        # Base Case: Starting point (0, 0)
+        val = coins[0][0]
+        # Option 1: Don't neutralize (or it's positive)
+        dp[0][0][2] = val
+        # Option 2: Neutralize if it's a robber
+        if val < 0:
+            dp[0][0][1] = 0
+            
+        for i in range(m):
+            for j in range(n):
+                for k in range(3):
+                    if dp[i][j][k] == float('-inf'):
+                        continue
+                    
+                    # Possible moves: Right and Down
+                    for ni, nj in [(i + 1, j), (i, j + 1)]:
+                        if ni < m and nj < n:
+                            n_val = coins[ni][nj]
+                            
+                            # Choice 1: Don't use neutralization power
+                            dp[ni][nj][k] = max(dp[ni][nj][k], dp[i][j][k] + n_val)
+                            
+                            # Choice 2: Use neutralization power (if available and it's a robber)
+                            if k > 0 and n_val < 0:
+                                dp[ni][nj][k-1] = max(dp[ni][nj][k-1], dp[i][j][k])
+                                
+        return max(dp[m-1][n-1])
