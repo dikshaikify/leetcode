@@ -1,0 +1,25 @@
+class Solution:
+    def decodeCiphertext(self, encodedText: str, rows: int) -> str:
+        if not encodedText:
+            return ""
+        
+        n = len(encodedText)
+        cols = n // rows
+        res = []
+        
+        # We only need to iterate through the starting positions in the first row
+        for start_col in range(cols):
+            r, c = 0, start_col
+            
+            # Follow the diagonal down-right
+            while r < rows and c < cols:
+                # Calculate the 1D index from 2D coordinates
+                index = r * cols + c
+                res.append(encodedText[index])
+                
+                # Move diagonally
+                r += 1
+                c += 1
+                
+        # Join and strip only the trailing spaces
+        return "".join(res).rstrip()
