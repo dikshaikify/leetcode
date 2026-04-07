@@ -1,0 +1,47 @@
+from typing import List
+
+class Robot:
+
+    def __init__(self, width: int, height: int):
+        self.w = width
+        self.h = height
+        self.pos = 0
+        # Total unique positions on the perimeter
+        self.perimeter = (width + height - 2) * 2
+        self.directions = ["East", "North", "West", "South"]
+        self.moved = False
+
+    def step(self, num: int) -> None:
+        self.moved = True
+        # Use modulo to skip full laps
+        self.pos = (self.pos + num) % self.perimeter
+
+    def getPos(self) -> List[int]:
+        curr = self.pos
+        # Determine (x, y) based on distance along the perimeter
+        if curr < self.w:
+            return [curr, 0]
+        curr -= (self.w - 1)
+        if curr < self.h:
+            return [self.w - 1, curr]
+        curr -= (self.h - 1)
+        if curr < self.w:
+            return [self.w - 1 - curr, self.h - 1]
+        curr -= (self.w - 1)
+        return [0, self.h - 1 - curr]
+
+    def getDir(self) -> str:
+        # Special case: If we haven't moved, the problem usually defines starting as East.
+        # If we have moved and landed back at (0,0), the robot is facing South.
+        if not self.moved:
+            return "East"
+        
+        curr = self.pos
+        if 1 <= curr < self.w:
+            return "East"
+        elif self.w <= curr < self.w + self.h - 1:
+            return "North"
+        elif self.w + self.h - 1 <= curr < 2 * self.w + self.h - 2:
+            return "West"
+        else:
+            return "South"
