@@ -1,0 +1,32 @@
+import java.util.*;
+
+class Solution {
+    public int minimumDistance(int[] nums) {
+        // Map to store the list of all indices for each unique number
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            map.computeIfAbsent(nums[i], k -> new ArrayList<>()).add(i);
+        }
+
+        long minDistance = Long.MAX_VALUE;
+
+        // Iterate through each number's list of indices
+        for (List<Integer> indices : map.values()) {
+            // We need at least 3 occurrences to form a triplet
+            if (indices.size() >= 3) {
+                for (int h = 0; h < indices.size() - 2; h++) {
+                    // To minimize 2 * (k - i), we check consecutive occurrences
+                    int i = indices.get(h);
+                    int k = indices.get(h + 2);
+                    
+                    // The distance formula |i-j| + |j-k| + |k-i| simplifies to 2 * (k - i)
+                    long currentDistance = 2L * (k - i);
+                    minDistance = Math.min(minDistance, currentDistance);
+                }
+            }
+        }
+
+        return (minDistance == Long.MAX_VALUE) ? -1 : (int) minDistance;
+    }
+}
