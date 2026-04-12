@@ -1,0 +1,43 @@
+class Solution {
+    public int minimumDistance(String word) {
+        int n = word.length();
+        // dp[i][other] = min distance to type first i chars, 
+        // with the finger NOT at word[i-1] being at char 'other'
+        // We use 26 for the "hovering/initial" state (no distance cost for first move)
+        int[][] dp = new int[n][27];
+        for (int[] row : dp) Arrays.fill(row, Integer.MAX_VALUE / 2);
+
+        // Base case: first character typed, second finger still "off-board" (index 26)
+        dp[0][26] = 0;
+
+        for (int i = 1; i < n; i++) {
+            int curr = word.charAt(i) - 'A';
+            int prev = word.charAt(i - 1) - 'A';
+
+            for (int other = 0; other <= 26; other++) {
+                if (dp[i - 1][other] == Integer.MAX_VALUE / 2) continue;
+
+                // Option 1: Move the finger that was at 'prev' to 'curr'
+                // The 'other' finger stays where it was.
+                dp[i][other] = Math.min(dp[i][other], dp[i - 1][other] + getDist(prev, curr));
+
+                // Option 2: Move the finger that was at 'other' to 'curr'
+                // The finger that was at 'prev' now becomes the 'other' finger.
+                dp[i][prev] = Math.min(dp[i][prev], dp[i - 1][other] + getDist(other, curr));
+            }
+        }
+
+        int minDistance = Integer.MAX_VALUE;
+        for (int d : dp[n - 1]) {
+            minDistance = Math.min(minDistance, d);
+        }
+        return minDistance;
+    }
+
+    private int getDist(int a, int b) {
+        if (a == 26) return 0; // Starting position cost is zero
+        int x1 = a / 6, y1 = a % 6;
+        int x2 = b / 6, y2 = b % 6;
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    }
+}
