@@ -1,0 +1,85 @@
+import java.util.*;
+
+class Solution {
+    class Point {
+        int x, y;
+        long p; // perimeter position
+        Point(int x, int y, long p) {
+            this.x = x;
+            this.y = y;
+            this.p = p;
+        }
+    }
+
+    public int maxDistance(int side, int[][] points, int k) {
+        int n = points.length;
+        Point[] pts = new Point[n];
+        
+        for (int i = 0; i < n; i++) {
+            pts[i] = new Point(points[i][0], points[i][1], getPos(points[i][0], points[i][1], side));
+        }
+        
+        // Sort points by their position along the perimeter
+        Arrays.sort(pts, (a, b) -> Long.compare(a.p, b.p));
+
+        int low = 1, high = 2 * side; 
+        int ans = 0;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (check(mid, pts, k)) {
+                ans = mid;
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return ans;
+    }
+
+    private boolean check(int minDist, Point[] pts, int k) {
+        int n = pts.length;
+        // Try starting the greedy selection from different points.
+        // Because we need to find ANY valid set of k points, and k is small,
+        // checking the first few points as potential start candidates is enough.
+        for (int i = 0; i < n; i++) {
+            // Optimization: If the current starting point is further from the first 
+            // point than the distance we are checking, we've covered the necessary rotations.
+            if (i > 0 && pts[i].p - pts[0].p >= minDist) break;
+
+            int count = 1;
+            Point last = pts[i];
+            
+            for (int j = 1; j < n; j++) {
+                Point curr = pts[(i + j) % n];
+                
+                // We only care about forward Manhattan distance in this greedy pass
+                if (dist(last, curr) >= minDist) {
+                    count++;
+                    last = curr;
+                    if (count == k) break;
+                }
+            }
+            
+            // Final check: Is the last point far enough from the starting point?
+            if (count == k && dist(last, pts[i]) >= minDist) {
+                return true;
+            }
+            
+            // Safety break for extremely large N (though 15k is fine for this)
+            if (i > 500) break;
+        }
+        return false;
+    }
+
+    private long getPos(int x, int y, int side) {
+        if (y == 0) return x;
+        if (x == side) return (long)side + y;
+        if (y == side) return 2L * side + (side - x);
+        return 3L * side + (side - y);
+    }
+
+    private int dist(Point a, Point b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+}
