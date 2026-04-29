@@ -1,0 +1,79 @@
+class Solution {
+    public long maximumScore(int[][] grid) {
+        int n = grid.length;
+        // Precompute prefix sums for columns to get range sums in O(1)
+        long[][] colSum = new long[n + 1][n];
+        for (int j = 0; j < n; j++) {
+            for (int i = 0; i < n; i++) {
+                colSum[i + 1][j] = colSum[i][j] + grid[i][j];
+            }
+        }
+
+        // dp[j][h] represents the max score at column j with black height h
+        // We use two states: one where current height is increasing, one where it's decreasing
+        long[][] inc = new long[n + 1][n + 1];
+        long[][] dec = new long[n + 1][n + 1];
+        
+        // Initialize with a very small number
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= n; j++) {
+                inc[i][j] = dec[i][j] = -1;
+            }
+        }
+
+        // Base case: first column
+        for (int h = 0; h <= n; h++) {
+            inc[0][h] = 0;
+            dec[0][h] = 0;
+        }
+
+        for (int j = 1; j < n; j++) {
+            long[][] nextInc = new long[n + 1][n + 1];
+            long[][] nextDec = new long[n + 1][n + 1];
+
+            for (int currH = 0; currH <= n; currH++) {
+                // To track max values for transitions
+                long bestInc = -1, bestDec = -1;
+
+                // Case 1: Increasing trend (h_prev <= h_curr)
+                // We gain points from the white cells in the 'gap' of the previous column
+                for (int prevH = 0; prevH <= currH; prevH++) {
+                    if (inc[j - 1][prevH] != -1) {
+                        long score = colSum[currH][j - 1] - colSum[prevH][j - 1];
+                        nextInc[j][currH] = Math.max(nextInc[j][currH], inc[j - 1][prevH] + score);
+                    }
+                }
+
+                // Case 2: Decreasing trend (h_prev > h_curr)
+                // We gain points from the white cells in the 'gap' of the current column
+                for (int prevH = 0; prevH <= n; prevH++) {
+                    long score = (prevH > currH) ? colSum[prevH][j] - colSum[currH][j] : 0;
+                    
+                    // From a previous increasing or decreasing state
+                    if (inc[j - 1][prevH] != -1) {
+                        nextDec[j][currH] = Math.max(nextDec[j][currH], inc[j - 1][prevH] + score);
+                    }
+                    if (dec[j - 1][prevH] != -1) {
+                        nextDec[j][currH] = Math.max(nextDec[j][currH], dec[j - 1][prevH] + score);
+                    }
+                }
+                
+                // Allow a "valley": a jump from a decreasing sequence to a new increasing one
+                // This happens when a column is height 0
+                if (currH == 0) {
+                    for (int prevH = 0; prevH <= n; prevH++) {
+                        nextInc[j][0] = Math.max(nextInc[j][0], Math.max(inc[j-1][prevH], dec[j-1][prevH]));
+                    }
+                }
+            }
+            inc = nextInc;
+            dec = nextDec;
+        }
+
+        long ans = 0;
+        for (int h = 0; h <= n; h++) {
+            ans = Math.max(ans, Math.max(inc[n - 1][h], dec[n - 1][h]));
+        }
+        return ans;
+    }
+}
